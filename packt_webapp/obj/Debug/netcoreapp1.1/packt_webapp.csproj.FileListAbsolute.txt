@@ -1,0 +1,9 @@
+c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\bin\Debug\netcoreapp1.1\packt_webapp.deps.json
+c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\bin\Debug\netcoreapp1.1\packt_webapp.runtimeconfig.json
+c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\bin\Debug\netcoreapp1.1\packt_webapp.runtimeconfig.dev.json
+c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\bin\Debug\netcoreapp1.1\packt_webapp.dll
+c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\obj\Debug\netcoreapp1.1\packt_webapp.csprojResolveAssemblyReference.cache
+c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\obj\Debug\netcoreapp1.1\packt_webapp.AssemblyInfo.cs
+c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\bin\Debug\netcoreapp1.1\packt_webapp.pdb
+c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\obj\Debug\netcoreapp1.1\packt_webapp.dll
+c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\obj\Debug\netcoreapp1.1\packt_webapp.pdb
