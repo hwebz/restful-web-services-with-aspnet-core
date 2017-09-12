@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using packt_webapp.Entities;
+using packt_webapp.QueryParameters;
+using System.Linq.Dynamic.Core;
 
 namespace packt_webapp.Repositories
 {
@@ -14,9 +14,27 @@ namespace packt_webapp.Repositories
             _context = context;
         }
 
-        public IQueryable<Customer> GetAll()
+        public IQueryable<Customer> GetAll(CustomerQueryParameters customerQueryParameters)
         {
-            return _context.Customers;
+            //IQueryable<Customer> _allCustomers = _context.Customers.OrderBy(x => x.Firstname);
+            IQueryable<Customer> _allCustomers = _context.Customers.OrderBy(customerQueryParameters.OrderBy, customerQueryParameters.Decending);
+
+            if (customerQueryParameters.HasQuery)
+            {
+                _allCustomers = _allCustomers
+                    .Where(x => x.Firstname.ToLowerInvariant().Contains(customerQueryParameters.Query.ToLowerInvariant()) ||
+                                x.Lastname.ToLowerInvariant().Contains(customerQueryParameters.Query.ToLowerInvariant()));
+            }
+
+            return _allCustomers
+                .Skip(customerQueryParameters.Page * (customerQueryParameters.Page - 1))
+                .Take(customerQueryParameters.PageCount);
+
+            //return _context.Customers.OrderBy(x => x.Firstname)
+            //    .Skip(customerQueryParameters.PageCount * (customerQueryParameters.Page - 1))
+            //    .Take(customerQueryParameters.PageCount);
+
+            //return _context.Customers;
         }
 
         public Customer GetSingle(Guid id)
@@ -38,6 +56,11 @@ namespace packt_webapp.Repositories
         public void Update(Customer item)
         {
             _context.Customers.Update(item);
+        }
+
+        public int Count()
+        {
+            return _context.Customers.Count();
         }
 
         public bool Save()

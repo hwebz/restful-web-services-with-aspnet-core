@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using packt_webapp.Dtos;
 using packt_webapp.Entities;
+using packt_webapp.QueryParameters;
 using packt_webapp.Repositories;
 
 namespace packt_webapp.Controllers
@@ -20,16 +23,27 @@ namespace packt_webapp.Controllers
         // Request using POSTMAN
 
         private readonly ICustomerRepository _customerRepository;
-        public CustomersController(ICustomerRepository customerRepository)
+        private readonly ILogger<CustomersController> _logger;
+        
+        public CustomersController(ICustomerRepository customerRepository, ILogger<CustomersController> logger)
         {
             _customerRepository = customerRepository;
+            _logger = logger;
+            _logger.LogInformation("customersController started");
         }
 
         [HttpGet]
-        public IActionResult GetAllCustomers()
+        [ProducesResponseType(typeof(List<Customer>), 200)]
+        public IActionResult GetAllCustomers(CustomerQueryParameters customerQueryParameters)
         {
-            var allCustomers = _customerRepository.GetAll().ToList();
+            //throw new Exception("test");
+            _logger.LogInformation(" -------> GetAllCustomers() ");
+
+            var allCustomers = _customerRepository.GetAll(customerQueryParameters).ToList();
+
             var allCustomersDto = allCustomers.Select(Mapper.Map<CustomerDto>);
+
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(new { totalCount = _customerRepository.Count() }));
 
             return Ok(allCustomersDto);
         }
@@ -49,8 +63,20 @@ namespace packt_webapp.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(CustomerCreateDto), 201)]
+        [ProducesResponseType(typeof(CustomerCreateDto), 400)]
         public IActionResult AddCustomer([FromBody] CustomerCreateDto customerCreateDto)
         {
+            if (customerCreateDto == null)
+            {
+                return BadRequest("customercreate object was null");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var toAdd = Mapper.Map<Customer>(customerCreateDto);
 
             _customerRepository.Add(toAdd);
@@ -70,11 +96,21 @@ namespace packt_webapp.Controllers
         [Route("{id}")]
         public IActionResult UpdateCustomer(Guid id, [FromBody] CustomerUpdateDto updateDto)
         {
+            if (updateDto == null)
+            {
+                return BadRequest();
+            }
+
             var existingCustomer = _customerRepository.GetSingle(id);
 
             if (existingCustomer == null)
             {
                 return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             Mapper.Map(updateDto, existingCustomer);
@@ -104,7 +140,7 @@ namespace packt_webapp.Controllers
         {
             if (customerPatch == null)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             var existingCustomer = _customerRepository.GetSingle(id);
@@ -115,7 +151,14 @@ namespace packt_webapp.Controllers
             }
 
             var customerToPatch = Mapper.Map<CustomerUpdateDto>(existingCustomer);
-            customerPatch.ApplyTo(customerToPatch);
+            //customerPatch.ApplyTo(customerToPatch);
+            customerPatch.ApplyTo(customerToPatch, ModelState);
+            TryValidateModel(customerToPatch);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             Mapper.Map(customerToPatch, existingCustomer);
 

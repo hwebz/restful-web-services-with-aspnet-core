@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using packt_webapp.Entities;
+using packt_webapp.QueryParameters;
 
 namespace packt_webapp.Repositories
 {
@@ -10,9 +11,10 @@ namespace packt_webapp.Repositories
     {
         void Add(Customer item);
         void Delete(Guid id);
-        IQueryable<Customer> GetAll();
+        IQueryable<Customer> GetAll(CustomerQueryParameters customerQueryParameters);
         Customer GetSingle(Guid id);
         bool Save();
+        int Count();
         void Update(Customer item);
 
     }

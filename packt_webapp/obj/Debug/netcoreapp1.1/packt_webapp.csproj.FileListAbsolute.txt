@@ -7,3 +7,4 @@ c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\o
 c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\bin\Debug\netcoreapp1.1\packt_webapp.pdb
 c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\obj\Debug\netcoreapp1.1\packt_webapp.dll
 c:\users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\obj\Debug\netcoreapp1.1\packt_webapp.pdb
+C:\Users\ha.do\documents\visual studio 2017\Projects\packt_webapp\packt_webapp\bin\Debug\netcoreapp1.1\nlog.config

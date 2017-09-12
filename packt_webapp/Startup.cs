@@ -1,16 +1,22 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using NLog.Web;
 using packt_webapp.Dtos;
 using packt_webapp.Entities;
 using packt_webapp.Middlewares;
 using packt_webapp.Repositories;
 using packt_webapp.Services;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace packt_webapp
 {
@@ -28,7 +34,10 @@ namespace packt_webapp
         public Startup(IHostingEnvironment env)
         {
             //var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
-            var builder = new ConfigurationBuilder().SetBasePath(env.ContentRootPath).AddJsonFile("appsettings.json");
+            var builder = new ConfigurationBuilder().SetBasePath(env.ContentRootPath).AddJsonFile("appsettings.json").AddEnvironmentVariables();
+
+            // nlog.config Properties -> Copy Always
+            env.ConfigureNLog("nlog.config");
 
             Configuration = builder.Build();
 
@@ -53,17 +62,57 @@ namespace packt_webapp
             // PM> Add-Migration FirstMigration
             // PM> Update-Database
 
-            services.AddMvc();
+            services.AddMvc(config =>
+            {
+                config.ReturnHttpNotAcceptable = true;
+                config.OutputFormatters.Add(new XmlSerializerOutputFormatter()); // Allow xml output format
+                config.InputFormatters.Add(new XmlSerializerInputFormatter());
+            });
+
+            // Swagger - API Documentation
+            services.AddSwaggerGen(config =>
+            {
+                config.SwaggerDoc("v1", new Info {Title = "My first WebAPI", Version = "v1"});
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole();
+            loggerFactory.AddDebug();
+            //loggerFactory.AddConsole(Configuration.GetSection("Logging")); // Log to cmd console window in packt_webapp running mode
+            //loggerFactory.AddDebug(LogLevel.Error); // Also log to debug windows in VS
+
+            // add NLog to ASP.NET Core
+            loggerFactory.AddNLog();
+
+            // Add NLog.Web
+            app.AddNLogWeb();
+
 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler(errorApp =>
+                {
+                    errorApp.Run(async context =>
+                    {
+                        context.Response.StatusCode = 500;
+                        context.Response.ContentType = "text/plain";
+                        var errorFeature = context.Features.Get<IExceptionHandlerFeature>();
+                        if (errorFeature != null)
+                        {
+                            var logger = loggerFactory.CreateLogger("Global exception logger");
+                            logger.LogError(500, errorFeature.Error, errorFeature.Error.Message);
+                        }
+
+                        await context.Response.WriteAsync("There was an error");
+                    });
+                });
             }
 
             if (env.IsEnvironment("MyEnvironment"))
@@ -73,6 +122,13 @@ namespace packt_webapp
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
+
+            app.UseSwagger();
+            // localhost/swagger
+            app.UseSwaggerUI(config =>
+            {
+                config.SwaggerEndpoint("/swagger/v1/swagger.json", "My first WebAPI");
+            });
 
             AutoMapper.Mapper.Initialize(mapper =>
             {
