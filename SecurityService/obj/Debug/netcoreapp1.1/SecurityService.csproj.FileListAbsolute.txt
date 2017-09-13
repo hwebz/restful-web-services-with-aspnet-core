@@ -1,0 +1,9 @@
+C:\Users\ha.do\Documents\Visual Studio 2017\Projects\packt_webapp\SecurityService\bin\Debug\netcoreapp1.1\SecurityService.deps.json
+C:\Users\ha.do\Documents\Visual Studio 2017\Projects\packt_webapp\SecurityService\bin\Debug\netcoreapp1.1\SecurityService.runtimeconfig.json
+C:\Users\ha.do\Documents\Visual Studio 2017\Projects\packt_webapp\SecurityService\bin\Debug\netcoreapp1.1\SecurityService.runtimeconfig.dev.json
+C:\Users\ha.do\Documents\Visual Studio 2017\Projects\packt_webapp\SecurityService\bin\Debug\netcoreapp1.1\SecurityService.dll
+C:\Users\ha.do\Documents\Visual Studio 2017\Projects\packt_webapp\SecurityService\obj\Debug\netcoreapp1.1\SecurityService.csprojResolveAssemblyReference.cache
+C:\Users\ha.do\Documents\Visual Studio 2017\Projects\packt_webapp\SecurityService\obj\Debug\netcoreapp1.1\SecurityService.AssemblyInfo.cs
+C:\Users\ha.do\documents\visual studio 2017\Projects\packt_webapp\SecurityService\bin\Debug\netcoreapp1.1\SecurityService.pdb
+C:\Users\ha.do\documents\visual studio 2017\Projects\packt_webapp\SecurityService\obj\Debug\netcoreapp1.1\SecurityService.dll
+C:\Users\ha.do\documents\visual studio 2017\Projects\packt_webapp\SecurityService\obj\Debug\netcoreapp1.1\SecurityService.pdb

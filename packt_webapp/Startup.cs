@@ -1,10 +1,13 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System;
+using System.IdentityModel.Tokens.Jwt;
+using IdentityServer4.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,8 +55,29 @@ namespace packt_webapp
             services.AddOptions();
             services.Configure<MyConfiguration>(Configuration);
 
+            // Allow all CORS
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins", builder =>
+                {
+                    builder
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
+
             // Use configuration string from json file
-            services.AddDbContext<PacktDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            // services.AddDbContext<PacktDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            // Docker DB setup instead of reading from JSON file
+            var hostname = Environment.GetEnvironmentVariable("DATABASE_IP");
+            var databasename = Environment.GetEnvironmentVariable("DATABASE_NAME");
+            var databaseuser = Environment.GetEnvironmentVariable("DATABASE_USER");
+            var databasepassword = Environment.GetEnvironmentVariable("DATABASE_PASSWORD");
+            var connString = $"Server={hostname};Database={databasename};User ID={databaseuser};Password={databasepassword}";
+            services.AddDbContext<PacktDbContext>(options => options.UseSqlServer(connString));
 
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<ISeedDataService, SeedDataService>();
@@ -73,6 +97,29 @@ namespace packt_webapp
             services.AddSwaggerGen(config =>
             {
                 config.SwaggerDoc("v1", new Info {Title = "My first WebAPI", Version = "v1"});
+            });
+
+            // API Versioning
+            //services.AddApiVersioning();
+            services.AddApiVersioning(config =>
+            {
+                config.ReportApiVersions = true;
+                config.AssumeDefaultVersionWhenUnspecified = true;
+                config.DefaultApiVersion = new ApiVersion(1,0);
+                config.ApiVersionReader = new HeaderApiVersionReader("api-version");
+            });
+
+            // IdentityServer - Authorization
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("resourcesAdmin", policyAdmin =>
+                {
+                    policyAdmin.RequireClaim("role", "resources.admin");
+                });
+                options.AddPolicy("resourcesUser", policyUser =>
+                {
+                    policyUser.RequireClaim("role", "resources.user");
+                });
             });
         }
 
@@ -115,11 +162,22 @@ namespace packt_webapp
                 });
             }
 
+            // IdentityServer
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            app.UseIdentityServerAuthentication(new IdentityServerAuthenticationOptions
+            {
+                Authority = "http://localhost:53448/",
+                //AllowedScopes = {"resourcesScope"},
+                RequireHttpsMetadata = false,
+                ApiName = "resourcesScope"
+            });
+
             if (env.IsEnvironment("MyEnvironment"))
             {
                 app.UseCustomMiddleware();
             }
 
+            
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
